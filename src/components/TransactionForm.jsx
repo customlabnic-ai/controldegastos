@@ -19,20 +19,22 @@ export default function TransactionForm({ onAddTransaction, categories }) {
     }
   }, [type, categories]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!amount || isNaN(amount) || parseFloat(amount) <= 0) return;
     if (!description.trim()) return;
 
-    onAddTransaction({
+    const res = await onAddTransaction({
       amount: parseFloat(amount),
       type,
       description: description.trim(),
       category_id: categoryId
     });
 
-    setAmount('');
-    setDescription('');
+    if (res?.success) {
+      setAmount('');
+      setDescription('');
+    }
   };
 
   return (

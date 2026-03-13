@@ -1,9 +1,10 @@
+import { formatCurrency, formatDate } from '../utils/formatters';
 import './HistoryList.css';
 
 export default function HistoryList({ transactions, onDelete }) {
   if (transactions.length === 0) {
     return (
-      <div className="history-empty text-muted">
+      <div className="history-empty text-muted card">
         Aún no tienes registros. Empieza a añadir tus ingresos y gastos.
       </div>
     );
@@ -15,7 +16,7 @@ export default function HistoryList({ transactions, onDelete }) {
       
       <div className="transactions-container">
         {transactions.map((tx) => {
-          const category = tx.categories || {}; // Manejar casos donde no haya categoría
+          const category = tx.categories || {}; 
           
           return (
             <div key={tx.id} className="transaction-item card">
@@ -32,14 +33,14 @@ export default function HistoryList({ transactions, onDelete }) {
                   <p className="tx-description">{tx.description}</p>
                   <p className="tx-date">
                     {category.name && <span className="cat-label">{category.name} • </span>}
-                    {new Date(tx.created_at).toLocaleDateString()}
+                    {formatDate(tx.created_at)}
                   </p>
                 </div>
               </div>
               
               <div className="tx-actions">
                 <span className={`tx-amount ${tx.type}`}>
-                  {tx.type === 'income' ? '+' : '-'}${parseFloat(tx.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
                 </span>
                 <button className="delete-btn" onClick={() => onDelete(tx.id)} title="Eliminar registro">
                   <span className="material-symbols-outlined">delete</span>

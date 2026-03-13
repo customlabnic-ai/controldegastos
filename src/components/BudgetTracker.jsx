@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { formatCurrency } from '../utils/formatters';
 import './BudgetTracker.css';
 
 export default function BudgetTracker({ categories, transactions, budgets, onUpdateBudget }) {
@@ -52,10 +53,10 @@ export default function BudgetTracker({ categories, transactions, budgets, onUpd
                   <span className="cat-name">{cat.name}</span>
                 </div>
                 <div className="budget-values">
-                  <span className="spent">${spent.toFixed(0)}</span>
+                  <span className="spent">{formatCurrency(spent).split('.')[0]}</span>
                   <span className="separator">/</span>
                   <button className="limit-btn" onClick={() => handleEdit(cat)}>
-                    {limit > 0 ? `$${limit.toFixed(0)}` : 'Set limit'}
+                    {limit > 0 ? formatCurrency(limit).split('.')[0] : 'Set limit'}
                   </button>
                 </div>
               </div>

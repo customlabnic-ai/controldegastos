@@ -1,3 +1,4 @@
+import { formatCurrency } from '../utils/formatters';
 import './Dashboard.css';
 
 export default function Dashboard({ balance, ingresos, gastos }) {
@@ -5,7 +6,7 @@ export default function Dashboard({ balance, ingresos, gastos }) {
     <div className="dashboard card">
       <div className="balance-section">
         <p className="text-muted">Balance Total</p>
-        <h1 className="text-h1 balance-amount">${balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}</h1>
+        <h1 className="text-h1 balance-amount">{formatCurrency(balance)}</h1>
       </div>
       
       <div className="stats-row">
@@ -15,7 +16,7 @@ export default function Dashboard({ balance, ingresos, gastos }) {
           </div>
           <div>
             <p className="text-muted stat-label">Ingresos</p>
-            <p className="stat-value">${ingresos.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+            <p className="stat-value">{formatCurrency(ingresos)}</p>
           </div>
         </div>
         
@@ -25,7 +26,7 @@ export default function Dashboard({ balance, ingresos, gastos }) {
           </div>
           <div>
             <p className="text-muted stat-label">Gastos</p>
-            <p className="stat-value">${gastos.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+            <p className="stat-value">{formatCurrency(gastos)}</p>
           </div>
         </div>
       </div>

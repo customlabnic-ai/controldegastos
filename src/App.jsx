@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import Dashboard from './components/Dashboard';
 import TransactionForm from './components/TransactionForm';
 import HistoryList from './components/HistoryList';
@@ -6,105 +5,113 @@ import ExpenseChart from './components/ExpenseChart';
 import BudgetTracker from './components/BudgetTracker';
 import SavingsGoals from './components/SavingsGoals';
 import AccountSwitcher from './components/AccountSwitcher';
-import { supabase } from './supabaseClient';
+import Auth from './components/Auth';
+import { useFinance } from './hooks/useFinance';
+import { useAuth } from './hooks/useAuth';
 
 function App() {
-  const [transactions, setTransactions] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [budgets, setBudgets] = useState([]);
-  const [goals, setGoals] = useState([]);
-  const [accounts, setAccounts] = useState([]);
-  const [activeAccountId, setActiveAccountId] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { user, loading: authLoading, signOut } = useAuth();
+  const {
+    transactions,
+    allCategories,
+    budgets,
+    goals,
+    accounts,
+    activeAccountId,
+    totals,
+    loading: financeLoading,
+    error,
+    setActiveAccountId,
+    addTransaction,
+    deleteTransaction,
+    updateBudget,
+    addGoal,
+    deleteGoal
+  } = useFinance(user?.id);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  // Pantalla de carga inicial (Auth)
+  if (authLoading) {
+    return (
+      <div className="app-container flex-center" style={{ height: '100vh' }}>
+        <div className="spinner"></div>
+      </div>
+    );
+  }
 
-  const fetchData = async () => {
-    setLoading(true);
-    
-    // Cargar Cat, Budgets, Goals, Accounts
-    const [catRes, budgetRes, goalRes, accRes] = await Promise.all([
-      supabase.from('categories').select('*'),
-      supabase.from('budgets').select('*'),
-      supabase.from('savings_goals').select('*'),
-      supabase.from('accounts').select('*')
-    ]);
+  // Si no hay usuario, mostrar Login/Registro
+  if (!user) {
+    return <Auth />;
+  }
 
-    setCategories(catRes.data || []);
-    setBudgets(budgetRes.data || []);
-    setGoals(goalRes.data || []);
-    const loadedAccounts = accRes.data || [];
-    setAccounts(loadedAccounts);
-    
-    if (loadedAccounts.length > 0 && !activeAccountId) {
-      setActiveAccountId(loadedAccounts[0].id);
-    }
-
-    // Cargar transacciones
-    const { data: txData } = await supabase
-      .from('transactions')
-      .select(`*, categories (id, name, icon, color)`)
-      .order('created_at', { ascending: false });
-    setTransactions(txData || []);
-
-    setLoading(false);
-  };
-
-  // Filtrar datos según cuenta activa
-  const activeTransactions = transactions.filter(t => t.account_id === activeAccountId);
-
-  // Cálculos dinámicos
-  const ingresos = activeTransactions.filter(t => t.type === 'income').reduce((acc, c) => acc + parseFloat(c.amount), 0);
-  const gastos = activeTransactions.filter(t => t.type === 'expense').reduce((acc, c) => acc + parseFloat(c.amount), 0);
-  const balance = ingresos - gastos;
-
-  // Acciones
-  const handleAddTransaction = async (newTx) => {
-    const txToInsert = { ...newTx, account_id: activeAccountId };
-    const { data } = await supabase.from('transactions').insert([txToInsert]).select(`*, categories (id, name, icon, color)`);
-    if (data) setTransactions([data[0], ...transactions]);
-  };
-
-  const handleDeleteTransaction = async (id) => {
-    const { error } = await supabase.from('transactions').delete().eq('id', id);
-    if (!error) setTransactions(transactions.filter(t => t.id !== id));
-  };
-
-  const handleUpdateBudget = async (categoryId, limit) => {
-    const { data } = await supabase.from('budgets').upsert({ category_id: categoryId, amount_limit: limit }, { onConflict: 'category_id' }).select();
-    if (data) setBudgets([...budgets.filter(b => b.category_id !== categoryId), data[0]]);
-  };
-
-  const handleAddGoal = async (goal) => {
-    const { data } = await supabase.from('savings_goals').insert([goal]).select();
-    if (data) setGoals([...goals, data[0]]);
-  };
-
-  const handleDeleteGoal = async (id) => {
-    const { error } = await supabase.from('savings_goals').delete().eq('id', id);
-    if (!error) setGoals(goals.filter(g => g.id !== id));
-  };
-
-  if (loading) return <div className="app-container flex-center" style={{height:'100vh'}}>Sincronizando...</div>;
+  // Si hay usuario pero los datos financieros están cargando
+  if (financeLoading) {
+    return (
+      <div className="app-container flex-center" style={{ height: '100vh', flexDirection: 'column', gap: '12px' }}>
+        <div className="spinner"></div>
+        <p className="text-muted">Cargando tus datos privados...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="app-container">
-      <Dashboard balance={balance} ingresos={ingresos} gastos={gastos} />
+      {/* Header con Logout */}
+      <div className="flex-space-between" style={{ padding: '20px 20px 0' }}>
+        <p className="text-muted" style={{ fontWeight: '600' }}>Hola, {user.email.split('@')[0]}</p>
+        <button 
+          onClick={signOut} 
+          className="text-muted flex-center" 
+          style={{ background: 'transparent', border: 'none', cursor: 'pointer', gap: '4px' }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>logout</span>
+          Salir
+        </button>
+      </div>
+
+      {error && (
+        <div className="error-banner" style={{ backgroundColor: 'var(--danger-color)', color: 'white', padding: '10px', textAlign: 'center', fontSize: '14px', margin: '10px' }}>
+          {error}
+        </div>
+      )}
+
+      <Dashboard 
+        balance={totals.balance} 
+        ingresos={totals.income} 
+        gastos={totals.expense} 
+      />
       
       <AccountSwitcher 
         accounts={accounts} 
         activeAccountId={activeAccountId} 
         onSelectAccount={setActiveAccountId}
-        totalBalance={balance}
+        totalBalance={totals.balance}
       />
 
-      <ExpenseChart transactions={activeTransactions} />
-      <BudgetTracker categories={categories} transactions={activeTransactions} budgets={budgets} onUpdateBudget={handleUpdateBudget} />
-      <SavingsGoals goals={goals} transactions={activeTransactions} onAddGoal={handleAddGoal} onDeleteGoal={handleDeleteGoal} />
-      <TransactionForm onAddTransaction={handleAddTransaction} categories={categories} />
-      <HistoryList transactions={activeTransactions} onDelete={handleDeleteTransaction} />
+      <ExpenseChart transactions={transactions} />
+      
+      <BudgetTracker 
+        categories={allCategories} 
+        transactions={transactions} 
+        budgets={budgets} 
+        onUpdateBudget={updateBudget} 
+      />
+      
+      <SavingsGoals 
+        goals={goals} 
+        transactions={transactions} 
+        onAddGoal={addGoal} 
+        onDeleteGoal={deleteGoal} 
+      />
+      
+      <TransactionForm 
+        onAddTransaction={addTransaction} 
+        categories={allCategories} 
+      />
+      
+      <HistoryList 
+        transactions={transactions} 
+        onDelete={deleteTransaction} 
+      />
     </div>
   );
 }

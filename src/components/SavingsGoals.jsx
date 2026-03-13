@@ -1,7 +1,8 @@
 import { useState } from 'react';
+import { formatCurrency } from '../utils/formatters';
 import './SavingsGoals.css';
 
-export default function SavingsGoals({ goals, transactions, onAddGoal, onUpdateGoal, onDeleteGoal }) {
+export default function SavingsGoals({ goals, transactions, onAddGoal, onDeleteGoal }) {
   const [showForm, setShowForm] = useState(false);
   const [newGoal, setNewGoal] = useState({ name: '', target: '', icon: 'star', color: '#007AFF' });
 
@@ -69,8 +70,8 @@ export default function SavingsGoals({ goals, transactions, onAddGoal, onUpdateG
               </div>
               
               <div className="goal-progress-info flex-space-between">
-                <span className="current">${parseFloat(goal.current_amount).toFixed(0)}</span>
-                <span className="target">${parseFloat(goal.target_amount).toFixed(0)}</span>
+                <span className="current">{formatCurrency(goal.current_amount).split('.')[0]}</span>
+                <span className="target">{formatCurrency(goal.target_amount).split('.')[0]}</span>
               </div>
 
               <div className="progress-bar-bg" style={{height: '8px'}}>
