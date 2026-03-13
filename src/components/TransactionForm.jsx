@@ -1,10 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './TransactionForm.css';
 
-export default function TransactionForm({ onAddTransaction }) {
+export default function TransactionForm({ onAddTransaction, categories }) {
   const [type, setType] = useState('expense');
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
+  const [categoryId, setCategoryId] = useState('');
+
+  // Filtrar categorías por tipo (ingreso/gasto)
+  const filteredCategories = categories.filter(c => 
+    c.type === type || c.type === 'both'
+  );
+
+  // Auto-seleccionar la primera categoría al cambiar de tipo
+  useEffect(() => {
+    if (filteredCategories.length > 0) {
+      setCategoryId(filteredCategories[0].id);
+    }
+  }, [type, categories]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -14,10 +27,10 @@ export default function TransactionForm({ onAddTransaction }) {
     onAddTransaction({
       amount: parseFloat(amount),
       type,
-      description: description.trim()
+      description: description.trim(),
+      category_id: categoryId
     });
 
-    // Resetear form
     setAmount('');
     setDescription('');
   };
@@ -55,6 +68,24 @@ export default function TransactionForm({ onAddTransaction }) {
             onChange={(e) => setAmount(e.target.value)}
             required
           />
+        </div>
+      </div>
+
+      <div className="input-group">
+        <p className="text-muted" style={{marginBottom: '8px', fontSize: '13px'}}>Categoría</p>
+        <div className="categories-grid">
+          {filteredCategories.map(cat => (
+            <button
+              key={cat.id}
+              type="button"
+              className={`category-chip ${categoryId === cat.id ? 'active' : ''}`}
+              onClick={() => setCategoryId(cat.id)}
+              style={{ '--cat-color': cat.color }}
+            >
+              <span className="material-symbols-outlined">{cat.icon}</span>
+              <span className="cat-name">{cat.name}</span>
+            </button>
+          ))}
         </div>
       </div>
 

@@ -2,28 +2,47 @@ import { useState, useEffect } from 'react';
 import Dashboard from './components/Dashboard';
 import TransactionForm from './components/TransactionForm';
 import HistoryList from './components/HistoryList';
+import ExpenseChart from './components/ExpenseChart';
 import { supabase } from './supabaseClient';
 
 function App() {
   const [transactions, setTransactions] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Efecto para cargar datos iniciales desde Supabase
   useEffect(() => {
-    fetchTransactions();
+    fetchData();
   }, []);
 
-  const fetchTransactions = async () => {
+  const fetchData = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    
+    // 1. Cargar categorías
+    const { data: catData, error: catError } = await supabase
+      .from('categories')
+      .select('*');
+
+    if (catError) console.error('Error cargando categorías:', catError);
+    else setCategories(catData || []);
+
+    // 2. Cargar transacciones con el join de categorías
+    const { data: txData, error: txError } = await supabase
       .from('transactions')
-      .select('*')
+      .select(`
+        *,
+        categories (
+          id,
+          name,
+          icon,
+          color
+        )
+      `)
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Error cargando transacciones:', error);
-    } else if (data) {
-      setTransactions(data);
+    if (txError) {
+      console.error('Error cargando transacciones:', txError);
+    } else if (txData) {
+      setTransactions(txData);
     }
     setLoading(false);
   };
@@ -41,27 +60,33 @@ function App() {
 
   // Acciones (Interacción con Supabase)
   const handleAddTransaction = async (newTx) => {
-    // 1. Guardar en Supabase
     const { data, error } = await supabase
       .from('transactions')
       .insert([{
         amount: newTx.amount,
         type: newTx.type,
-        description: newTx.description
+        description: newTx.description,
+        category_id: newTx.category_id
       }])
-      .select();
+      .select(`
+        *,
+        categories (
+          id,
+          name,
+          icon,
+          color
+        )
+      `);
 
     if (error) {
       console.error('Error insertando la transacción:', error);
-      alert('Hubo un error al guardar el registro. Verifica que el SQL Editor se haya ejecutado en Supabase.');
+      alert('Error al guardar. Verifica que el SQL Editor se haya ejecutado.');
     } else if (data) {
-      // 2. Si se guardó correctamente, actualizar la lista en pantalla
       setTransactions([data[0], ...transactions]);
     }
   };
 
   const handleDeleteTransaction = async (id) => {
-    // 1. Eliminar en Supabase
     const { error } = await supabase
       .from('transactions')
       .delete()
@@ -70,7 +95,6 @@ function App() {
     if (error) {
       console.error('Error eliminando la transacción:', error);
     } else {
-      // 2. Eliminar de la pantalla
       setTransactions(transactions.filter(t => t.id !== id));
     }
   };
@@ -90,9 +114,12 @@ function App() {
         ingresos={ingresos} 
         gastos={gastos} 
       />
+
+      <ExpenseChart transactions={transactions} />
       
       <TransactionForm 
         onAddTransaction={handleAddTransaction} 
+        categories={categories}
       />
 
       <HistoryList 

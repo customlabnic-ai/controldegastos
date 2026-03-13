@@ -1,0 +1,27 @@
+.chart-container {
+  margin-top: 20px;
+  padding: 20px;
+}
+
+.chart-wrapper {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+}
+
+/* Estilos para la leyenda de Recharts */
+.recharts-legend-item-text {
+  color: var(--text-secondary) !important;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.recharts-tooltip-label {
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .recharts-legend-item-text {
+    color: #ffffff99 !important;
+  }
+}
