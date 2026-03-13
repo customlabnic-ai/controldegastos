@@ -1,0 +1,106 @@
+.history-list {
+  margin-top: 16px;
+}
+
+.history-empty {
+  text-align: center;
+  padding: 40px 20px;
+  background-color: var(--card-bg);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.transaction-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.tx-details {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.tx-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tx-icon.income {
+  background-color: rgba(48, 209, 88, 0.1);
+  color: var(--success-color);
+}
+
+.tx-icon.expense {
+  background-color: rgba(255, 69, 58, 0.1);
+  color: var(--danger-color);
+}
+
+.tx-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.tx-description {
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--text-main);
+  margin-bottom: 2px;
+}
+
+.tx-date {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.tx-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.tx-amount {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.tx-amount.income {
+  color: var(--success-color);
+}
+
+.tx-amount.expense {
+  color: var(--text-main); /* Diseño premium: Los gastos suelen ir en negro, pero depende */
+}
+
+/* Modo oscuro ajustes */
+@media (prefers-color-scheme: dark) {
+  .tx-amount.expense {
+    color: var(--text-main);
+  }
+}
+
+.delete-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.delete-btn:hover {
+  background-color: rgba(255, 69, 58, 0.1);
+  color: var(--danger-color);
+}

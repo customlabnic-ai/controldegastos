@@ -1,0 +1,153 @@
+/* CSS Reset y Variables (Design System) */
+:root {
+  /* Paleta de Colores - Inspiración App Neto / iOS Nativo */
+  --bg-color: #f2f2f7; /* Gris claro fondo iOS */
+  --card-bg: #ffffff;
+  --text-main: #1c1c1e;
+  --text-secondary: #8e8e93;
+  
+  --primary-color: #007aff; /* Azul nativo iOS */
+  --primary-color-hover: #0056b3;
+  
+  --success-color: #34c759; /* Verde ingresos */
+  --danger-color: #ff3b30; /* Rojo gastos */
+  --warning-color: #ffcc00;
+
+  /* Tipografía */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  
+  /* Sombras suaves */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  
+  /* Radios (Esquinas redondeadas) */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+
+  /* Transiciones */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Modo oscuro automático (Basado en preferencias del sistema) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-color: #000000;
+    --card-bg: #1c1c1e;
+    --text-main: #f2f2f7;
+    --text-secondary: #aeaeb2;
+    --primary-color: #0a84ff;
+    --success-color: #30d158;
+    --danger-color: #ff453a;
+  }
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent; /* Quitar sombra azul al tocar en móviles */
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  padding-bottom: 80px; /* Espacio para barra de navegación inferior móvil */
+}
+
+/* Contenedor Principal (Simulando pantalla de celular en Desktop) */
+.app-container {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  position: relative;
+  background-color: var(--bg-color);
+  box-shadow: 0 0 20px rgba(0,0,0,0.05);
+}
+
+@media (prefers-color-scheme: dark) {
+  .app-container {
+    box-shadow: none;
+    border-left: 1px solid #333;
+    border-right: 1px solid #333;
+  }
+}
+
+/* --- Utilidades --- */
+
+.card {
+  background-color: var(--card-bg);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 16px;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+/* Botones Premium */
+.btn-primary {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--radius-full);
+  padding: 14px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: var(--font-family);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  transition: transform 0.1s ease, background-color var(--transition-fast);
+  box-shadow: 0 4px 14px rgba(0, 122, 255, 0.3);
+}
+
+.btn-primary:active {
+  transform: scale(0.96);
+}
+
+@media (prefers-color-scheme: dark) {
+  .btn-primary {
+    box-shadow: 0 4px 14px rgba(10, 132, 255, 0.3);
+  }
+}
+
+/* Textos */
+.text-h1 {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
+}
+
+.text-h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.text-muted {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* Layout Utilidades */
+.flex-space-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
