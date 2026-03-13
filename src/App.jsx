@@ -5,6 +5,7 @@ import HistoryList from './components/HistoryList';
 import ExpenseChart from './components/ExpenseChart';
 import BudgetTracker from './components/BudgetTracker';
 import SavingsGoals from './components/SavingsGoals';
+import AccountSwitcher from './components/AccountSwitcher';
 import { supabase } from './supabaseClient';
 
 function App() {
@@ -12,6 +13,8 @@ function App() {
   const [categories, setCategories] = useState([]);
   const [budgets, setBudgets] = useState([]);
   const [goals, setGoals] = useState([]);
+  const [accounts, setAccounts] = useState([]);
+  const [activeAccountId, setActiveAccountId] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -21,19 +24,25 @@ function App() {
   const fetchData = async () => {
     setLoading(true);
     
-    // 1. Cargar categorías
-    const { data: catData } = await supabase.from('categories').select('*');
-    setCategories(catData || []);
+    // Cargar Cat, Budgets, Goals, Accounts
+    const [catRes, budgetRes, goalRes, accRes] = await Promise.all([
+      supabase.from('categories').select('*'),
+      supabase.from('budgets').select('*'),
+      supabase.from('savings_goals').select('*'),
+      supabase.from('accounts').select('*')
+    ]);
 
-    // 2. Cargar presupuestos
-    const { data: budgetData } = await supabase.from('budgets').select('*');
-    setBudgets(budgetData || []);
+    setCategories(catRes.data || []);
+    setBudgets(budgetRes.data || []);
+    setGoals(goalRes.data || []);
+    const loadedAccounts = accRes.data || [];
+    setAccounts(loadedAccounts);
+    
+    if (loadedAccounts.length > 0 && !activeAccountId) {
+      setActiveAccountId(loadedAccounts[0].id);
+    }
 
-    // 3. Cargar metas de ahorro
-    const { data: goalData } = await supabase.from('savings_goals').select('*');
-    setGoals(goalData || []);
-
-    // 4. Cargar transacciones
+    // Cargar transacciones
     const { data: txData } = await supabase
       .from('transactions')
       .select(`*, categories (id, name, icon, color)`)
@@ -43,14 +52,18 @@ function App() {
     setLoading(false);
   };
 
-  // Cálculos
-  const ingresos = transactions.filter(t => t.type === 'income').reduce((acc, c) => acc + parseFloat(c.amount), 0);
-  const gastos = transactions.filter(t => t.type === 'expense').reduce((acc, c) => acc + parseFloat(c.amount), 0);
+  // Filtrar datos según cuenta activa
+  const activeTransactions = transactions.filter(t => t.account_id === activeAccountId);
+
+  // Cálculos dinámicos
+  const ingresos = activeTransactions.filter(t => t.type === 'income').reduce((acc, c) => acc + parseFloat(c.amount), 0);
+  const gastos = activeTransactions.filter(t => t.type === 'expense').reduce((acc, c) => acc + parseFloat(c.amount), 0);
   const balance = ingresos - gastos;
 
-  // Acciones Transacciones
+  // Acciones
   const handleAddTransaction = async (newTx) => {
-    const { data } = await supabase.from('transactions').insert([newTx]).select(`*, categories (id, name, icon, color)`);
+    const txToInsert = { ...newTx, account_id: activeAccountId };
+    const { data } = await supabase.from('transactions').insert([txToInsert]).select(`*, categories (id, name, icon, color)`);
     if (data) setTransactions([data[0], ...transactions]);
   };
 
@@ -59,15 +72,11 @@ function App() {
     if (!error) setTransactions(transactions.filter(t => t.id !== id));
   };
 
-  // Acciones Presupuestos
   const handleUpdateBudget = async (categoryId, limit) => {
     const { data } = await supabase.from('budgets').upsert({ category_id: categoryId, amount_limit: limit }, { onConflict: 'category_id' }).select();
-    if (data) {
-      setBudgets([...budgets.filter(b => b.category_id !== categoryId), data[0]]);
-    }
+    if (data) setBudgets([...budgets.filter(b => b.category_id !== categoryId), data[0]]);
   };
 
-  // Acciones Metas
   const handleAddGoal = async (goal) => {
     const { data } = await supabase.from('savings_goals').insert([goal]).select();
     if (data) setGoals([...goals, data[0]]);
@@ -83,11 +92,19 @@ function App() {
   return (
     <div className="app-container">
       <Dashboard balance={balance} ingresos={ingresos} gastos={gastos} />
-      <ExpenseChart transactions={transactions} />
-      <BudgetTracker categories={categories} transactions={transactions} budgets={budgets} onUpdateBudget={handleUpdateBudget} />
-      <SavingsGoals goals={goals} transactions={transactions} onAddGoal={handleAddGoal} onDeleteGoal={handleDeleteGoal} />
+      
+      <AccountSwitcher 
+        accounts={accounts} 
+        activeAccountId={activeAccountId} 
+        onSelectAccount={setActiveAccountId}
+        totalBalance={balance}
+      />
+
+      <ExpenseChart transactions={activeTransactions} />
+      <BudgetTracker categories={categories} transactions={activeTransactions} budgets={budgets} onUpdateBudget={handleUpdateBudget} />
+      <SavingsGoals goals={goals} transactions={activeTransactions} onAddGoal={handleAddGoal} onDeleteGoal={handleDeleteGoal} />
       <TransactionForm onAddTransaction={handleAddTransaction} categories={categories} />
-      <HistoryList transactions={transactions} onDelete={handleDeleteTransaction} />
+      <HistoryList transactions={activeTransactions} onDelete={handleDeleteTransaction} />
     </div>
   );
 }
