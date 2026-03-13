@@ -1,0 +1,87 @@
+.budget-tracker {
+  margin-top: 20px;
+  padding: 20px;
+}
+
+.budgets-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.budget-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.budget-info .cat-name {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.budget-values {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.budget-values .spent {
+  color: var(--text-main);
+}
+
+.budget-values .separator {
+  margin: 0 4px;
+  color: var(--text-secondary);
+}
+
+.limit-btn {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.progress-bar-bg {
+  height: 6px;
+  background-color: var(--bg-color);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease-out;
+}
+
+.progress-bar-fill.danger {
+  box-shadow: 0 0 8px rgba(255, 59, 48, 0.4);
+}
+
+/* Modal Simple */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  padding: 20px;
+}
+
+.btn-secondary {
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  padding: 12px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+}
